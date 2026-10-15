@@ -38,3 +38,25 @@ cd /Users/wangmian/Fixes/sf8086/sdk_probe/project && scons --board=sf32lb52-lchs
 磁盘路径不需要改上游源码：仿真核心通过宏重定向改走 RAM 盘后端，所以
 `third_party/8086tiny/8086tiny.c` 里仍然是普通的 `open/read/lseek/write` 调用。
 `sf8086` 命令直接以 `bios` / `fd.img` 两个名字打开 RAM 盘，不需要文件系统。
+
+## UART1 控制台归属（FreeDOS 与 RT-Thread shell 抢输入的问题）
+
+现象：运行 DOS 后，给 FreeDOS 的按键会被 RT-Thread 的 msh 吃掉（或反过来）。
+
+原因：`RT_USING_POSIX` 打开时，msh 走的是 newlib `getchar()` → fd 0 → 启动时
+`libc_system_init()` 已经把 fd 0 绑到 `/dev/uart1`；而仿真器是直接读同一个 uart1
+设备。两个读者争同一个接收缓冲，谁先读谁拿到。
+
+解决（`port/emu_console_rtthread.c` + `port/emu_idle_dev.c`）：保证同一时刻只有一个读者。
+
+- `sf8086` 启动时（在 shell 线程内、刚执行完本命令、尚未回到 getchar）把 stdio 切到
+  `/dev/emu_idle`：一个永远没有输入的字符设备，shell 的阻塞读就停在那里（0 CPU）。
+  UART1 归仿真器独占。
+- 仿真线程里检测到 `Ctrl-]`（0x1D）时**不切换 stdio**，只把内部命令 `sf8086_paused`
+  排进 emu_idle 设备并唤醒 shell，然后在信号量上停住自己。
+- shell 执行 `sf8086_paused` 时（它自己的线程）再 `libc_stdio_set_console("uart1")` 交还
+  UART1，于是 `msh` 提示符与输入恢复正常。`sf8086run` 继续、`sf8086` 重新引导。
+
+关键约束：stdio 的切换必须发生在 shell 线程里（切换会 `fclose` shell 正在读的 FILE）；
+不能用 `rt_thread_suspend` 从外部挂起 shell——这版 RT-Thread 的 `rt_thread_suspend`
+只接受处于 READY 状态的线程。

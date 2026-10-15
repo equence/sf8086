@@ -9,6 +9,7 @@ port_dir = os.path.join(cwd, '../../port')
 app_src = [str(f) for f in Glob('*.c') if not str(f).endswith('sf8086_core.c')]
 app_src += [
     os.path.join(port_dir, 'emu_console_rtthread.c'),
+    os.path.join(port_dir, 'emu_idle_dev.c'),
     os.path.join(port_dir, 'emu_libc_shim.c'),
 ]
 
