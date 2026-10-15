@@ -1,42 +1,100 @@
 #!/bin/sh
 # Build the DOS boot floppy that ships inside the firmware.
 #
-# The image is edited in place from a pristine copy (fd-base.img), so every step
-# is reproducible and auditable:
+# By default it starts from the vendored FreeDOS image and applies the recipe:
 #   1. prune what cannot run on an 8086 or cannot be used on this board
 #   2. add Turbo C 2.01 (small model) for C development
-#   3. add a short README and a sample program
+#   3. add a short README and the sample programs
 #
-# The image keeps its exact 1.44 MB geometry: FreeDOS and the emulated BIOS both
+# A different DOS, including MS-DOS, can be used instead by pointing DOS_IMAGE at
+# a bootable 1.44 MB floppy image.  That image is copied first and then edited, so
+# the original is never touched.
+#
+# Usage (from the repository root):
+#   sh tools/floppy/build_fdimg.sh
+#   DOS_IMAGE=/path/to/msdos622.img sh tools/floppy/build_fdimg.sh
+#   DOS_IMAGE=... WITHOUT_TOOLS=1 sh tools/floppy/build_fdimg.sh
+#   KEEP_HELP=1 sh tools/floppy/build_fdimg.sh        (keep the FreeDOS help data)
+#
+# The result always keeps the 1.44 MB geometry: the emulated BIOS and both DOSes
 # depend on it.
-#
-# Usage:  sh tools/floppy/build_fdimg.sh          (from the repository root)
-#         KEEP_HELP=1 sh tools/floppy/build_fdimg.sh   (keep the help database)
 set -e
 
 cd "$(dirname "$0")/../.."
 root=$(pwd)
 fat12="python3 $root/tools/floppy/fat12.py"
-base="$root/third_party/8086tiny/fd-base.img"
+default_base="$root/third_party/8086tiny/fd-base.img"
+base="${DOS_IMAGE:-$default_base}"
 image="$root/third_party/8086tiny/fd.img"
 payload="$root/tools/floppy/payload/tc201"
 
+# Pruning is specific to the FreeDOS image; a supplied image is left alone unless
+# PRUNE=1 is set explicitly.
+prune=0
+[ -z "${DOS_IMAGE:-}" ] && prune=1
+[ "${PRUNE:-}" = "1" ] && prune=1
+
+# ---------------------------------------------------------------------------
+# 0. Check the image we start from
+# ---------------------------------------------------------------------------
 if [ ! -f "$base" ]; then
-  echo "missing $base (the pristine original boot floppy)" >&2
+  echo "missing base image: $base" >&2
   exit 1
 fi
 
+python3 - "$base" <<'PY'
+import re
+import struct
+import sys
+
+path = sys.argv[1]
+data = open(path, "rb").read()
+problems = []
+if len(data) != 1474560:
+    problems.append(f"size is {len(data)}, expected 1474560 (1.44 MB)")
+if data[510:512] != b"\x55\xAA":
+    problems.append("no 55 AA boot signature")
+
+print(f"base image: {path}")
+try:
+    bps, spc, resv, nfat, ndir, nsect, media = struct.unpack_from("<HBHBHHB", data, 11)
+    spf = struct.unpack_from("<H", data, 22)[0]
+except Exception as exc:                                    # noqa: BLE001
+    problems.append(f"unreadable BPB: {exc}")
+else:
+    print(f"  geometry : {bps} B/sector, {spc} sector/cluster, {nsect} sectors, "
+          f"media 0x{media:02X}")
+    print(f"  layout   : {nfat} FAT of {spf} sectors, {ndir} root entries, "
+          f"{resv} reserved")
+    if bps != 512 or spc != 1 or nsect != 2880:
+        problems.append(f"geometry is {bps} B sectors, {spc} per cluster, {nsect} total")
+
+# A floppy without a DOS system file boots nowhere.  Warn rather than refuse.
+root_dir = data[(resv + nfat * spf) * bps:(resv + nfat * spf) * bps + ndir * 32]
+names = b"".join(re.findall(rb"[A-Z0-9_ ]{11}", root_dir))
+if not any(sys in names for sys in (b"IO      SYS", b"MSDOS   SYS",
+                                    b"IBMDOS  COM", b"KERNEL  SYS")):
+    print("  warning  : no IO.SYS / MSDOS.SYS / KERNEL.SYS in the root directory")
+
+if problems:
+    for problem in problems:
+        print(f"  problem  : {problem}", file=sys.stderr)
+    print("not a 1.44 MB FAT12 boot floppy; refusing to build from it", file=sys.stderr)
+    sys.exit(1)
+PY
+
 cp "$base" "$image"
-echo "== starting from fd-base.img =="
+echo
 $fat12 "$image" free
 
-# ---------------------------------------------------------------------------
-# 1. Prune
-# ---------------------------------------------------------------------------
-# Programs that need a 286/386, protected mode or a DPMI host: they cannot run
-# under 8086tiny and only mislead anyone who tries.  Everything the boot
-# configuration loads is already commented out, so removing them changes nothing.
-DEAD_ON_8086="
+if [ "$prune" = "1" ]; then
+  # -------------------------------------------------------------------------
+  # 1. Prune (FreeDOS image only)
+  # -------------------------------------------------------------------------
+  # Programs that need a 286/386, protected mode or a DPMI host: they cannot run
+  # under 8086tiny and only mislead anyone who tries.  Everything the boot
+  # configuration loads is already commented out, so removing them changes nothing.
+  DEAD_ON_8086="
 FREEDOS/BIN/CWSDPMI.EXE
 FREEDOS/BIN/DOSFSCK.EXE
 FREEDOS/BIN/EMM386.EXE
@@ -47,8 +105,8 @@ FREEDOS/BIN/FDXXMS.SYS
 FREEDOS/BIN/LFNXLAT.386
 "
 
-# CD-ROM / SCSI / ISO tooling and printer tooling: 8086tiny has neither.
-NO_HARDWARE="
+  # CD-ROM / SCSI / ISO tooling and printer tooling: 8086tiny has neither.
+  NO_HARDWARE="
 FREEDOS/BIN/SHSUCDHD.EXE
 FREEDOS/BIN/SHSUCDRD.EXE
 FREEDOS/BIN/SHSUCDRI.EXE
@@ -81,79 +139,103 @@ FREEDOS/BIN/FDCOM.ICO
 APPINFO.TGZ
 "
 
-# The FreeDOS help database and its viewers.  The documentation lives in this
-# repository instead; on an 8086 guest the 230 KB buys more as C workspace.
-HELP_SYSTEM="
-FREEDOS/HELP/EN/HHSTNDRD/ZIP
-FREEDOS/HELP/EN/INDEX.HTM
-FREEDOS/HELP/EN/HELP.HTM
-FREEDOS/HELP/EN/HHSTNDRD/H2CPYING.TXT
-FREEDOS/HELP/EN/HHSTNDRD/README.1ST
-FREEDOS/HELP/INDEX.HTM
-FREEDOS/HELP/FDL.TXT
-FREEDOS/BIN/HELP.EXE
-FREEDOS/BIN/PG.EXE
-FREEDOS/BIN/PG.MAN
-"
-
-echo "== pruning =="
-for path in $DEAD_ON_8086 $NO_HARDWARE; do
-  $fat12 "$image" del "$path" 2>/dev/null || echo "  (absent) $path"
-done
-if [ "$KEEP_HELP" != "1" ]; then
-  $fat12 "$image" del "FREEDOS/HELP/EN/HHSTNDRD/HHSTNDRD.ZIP" 2>/dev/null \
-    || echo "  (absent) help database"
-  for path in FREEDOS/HELP/EN/INDEX.HTM FREEDOS/HELP/EN/HELP.HTM \
-              FREEDOS/HELP/EN/HHSTNDRD/H2CPYING.TXT \
-              FREEDOS/HELP/EN/HHSTNDRD/README.1ST \
-              FREEDOS/HELP/INDEX.HTM FREEDOS/HELP/FDL.TXT \
-              FREEDOS/BIN/HELP.EXE FREEDOS/BIN/PG.EXE FREEDOS/BIN/PG.MAN; do
+  # The FreeDOS help database and its viewers.  The documentation lives in this
+  # repository instead; on an 8086 guest the 230 KB buys more as C workspace.
+  echo "== pruning =="
+  for path in $DEAD_ON_8086 $NO_HARDWARE; do
     $fat12 "$image" del "$path" 2>/dev/null || echo "  (absent) $path"
   done
-fi
-$fat12 "$image" free
-
-# ---------------------------------------------------------------------------
-# 2. C toolchain
-# ---------------------------------------------------------------------------
-if [ -f "$payload/BIN/TCC.EXE" ]; then
-  echo "== adding Turbo C 2.01 (small model) =="
-  $fat12 "$image" mkdir TC
-  $fat12 "$image" mkdir TC/INCLUDE
-  $fat12 "$image" mkdir TC/LIB
-  for file in "$payload"/BIN/*; do
-    $fat12 "$image" add "$file" TC
-  done
-  for file in "$payload"/INCLUDE/*; do
-    $fat12 "$image" add "$file" TC/INCLUDE
-  done
-  for file in "$payload"/LIB/*; do
-    $fat12 "$image" add "$file" TC/LIB
-  done
+  if [ "$KEEP_HELP" != "1" ]; then
+    $fat12 "$image" del "FREEDOS/HELP/EN/HHSTNDRD/HHSTNDRD.ZIP" 2>/dev/null \
+      || echo "  (absent) help database"
+    for path in FREEDOS/HELP/EN/INDEX.HTM FREEDOS/HELP/EN/HELP.HTM \
+                FREEDOS/HELP/EN/HHSTNDRD/H2CPYING.TXT \
+                FREEDOS/HELP/EN/HHSTNDRD/README.1ST \
+                FREEDOS/HELP/INDEX.HTM FREEDOS/HELP/FDL.TXT \
+                FREEDOS/BIN/HELP.EXE FREEDOS/BIN/PG.EXE FREEDOS/BIN/PG.MAN; do
+      $fat12 "$image" del "$path" 2>/dev/null || echo "  (absent) $path"
+    done
+  fi
+  $fat12 "$image" free
 else
-  echo "== Turbo C payload not staged: skipping the compiler =="
-  echo "   run: sh tools/floppy/fetch_turbo_c.sh"
+  echo "== pruning skipped (image supplied through DOS_IMAGE) =="
 fi
 
 # ---------------------------------------------------------------------------
-# 3. Samples and notes
+# 2. Tools, if they fit
 # ---------------------------------------------------------------------------
-echo "== adding samples =="
-$fat12 "$image" mkdir TC/SAMPLES
+if [ "${WITHOUT_TOOLS:-}" = "1" ]; then
+  echo
+  echo "== WITHOUT_TOOLS=1: image used as it is =="
+else
+  need=$(python3 - "$payload" "$root/tools/floppy/dosfiles" <<'PY'
+import os
+import sys
 
-# DOS text files want CRLF endings; keep the repository copies as plain ASCII.
-stage=$(mktemp -d "${TMPDIR:-/tmp}/sf8086-dosfiles.XXXXXX")
-for file in "$root"/tools/floppy/dosfiles/*; do
-  name=$(basename "$file")
-  awk 'BEGIN { ORS = "\r\n" } { print }' "$file" > "$stage/$name"
-done
+total = 0
+for directory in sys.argv[1:]:
+    for folder, _dirs, files in os.walk(directory):
+        for name in files:
+            size = os.path.getsize(os.path.join(folder, name))
+            total += (size + 511) // 512 * 512
+print(total + 16 * 512)          # directory entries and slack
+PY
+)
+  free=$(python3 - "$image" "$root" <<'PY'
+import sys
 
-for file in "$stage"/*; do
-  case "$file" in
-    *.C) $fat12 "$image" add "$file" TC/SAMPLES ;;
-    *)   $fat12 "$image" add "$file" ;;
-  esac
-done
+sys.path.insert(0, sys.argv[2] + "/tools/floppy")
+from fat12 import Fat12                                     # noqa: E402
+
+fs = Fat12(sys.argv[1])
+print(sum(1 for c in range(2, fs.cluster_count + 2) if fs.is_free(c)) * fs.bytes_per_sector)
+PY
+)
+  echo
+  echo "== toolchain needs $need B, image has $free B free =="
+
+  if [ ! -f "$payload/BIN/TCC.EXE" ]; then
+    echo "== Turbo C payload not staged: skipping the compiler =="
+    echo "   run: sh tools/floppy/fetch_turbo_c.sh"
+  elif [ "$free" -lt "$need" ]; then
+    echo "== not enough room for the toolchain: skipping it =="
+    echo "   the image works as it is; WITHOUT_TOOLS=1 suppresses this message"
+  else
+    echo "== adding Turbo C 2.01 (small model) =="
+    $fat12 "$image" mkdir TC
+    $fat12 "$image" mkdir TC/INCLUDE
+    $fat12 "$image" mkdir TC/LIB
+    for file in "$payload"/BIN/*; do
+      $fat12 "$image" add "$file" TC
+    done
+    for file in "$payload"/INCLUDE/*; do
+      $fat12 "$image" add "$file" TC/INCLUDE
+    done
+    for file in "$payload"/LIB/*; do
+      $fat12 "$image" add "$file" TC/LIB
+    done
+
+    # -----------------------------------------------------------------------
+    # 3. Samples and notes
+    # -----------------------------------------------------------------------
+    echo "== adding samples =="
+    $fat12 "$image" mkdir TC/SAMPLES
+
+    # DOS text files want CRLF endings; keep the repository copies as plain ASCII.
+    stage=$(mktemp -d "${TMPDIR:-/tmp}/sf8086-dosfiles.XXXXXX")
+    for file in "$root"/tools/floppy/dosfiles/*; do
+      name=$(basename "$file")
+      awk 'BEGIN { ORS = "\r\n" } { print }' "$file" > "$stage/$name"
+    done
+
+    for file in "$stage"/*; do
+      case "$file" in
+        *.C) $fat12 "$image" add "$file" TC/SAMPLES ;;
+        *)   $fat12 "$image" add "$file" ;;
+      esac
+    done
+  fi
+fi
 
 $fat12 "$image" check
 echo

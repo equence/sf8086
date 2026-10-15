@@ -63,6 +63,10 @@ While DOS runs, UART1 is held by the emulator and the shell does not read it.
 Writes to A: are held in RAM and are lost on reboot. Work done in DOS does not
 modify the image in flash.
 
+FreeDOS is what the shipped image contains. MS-DOS can be used instead by
+building the image from your own boot floppy; see
+[tools/floppy/README.md](tools/floppy/README.md).
+
 Alt key combinations: the emulated BIOS uses `Ctrl+A` as an Alt prefix, and the
 firmware converts the `ESC`+key sequence produced by terminals. `KEYTEST` prints
 the scan code and ASCII value received for each key press.

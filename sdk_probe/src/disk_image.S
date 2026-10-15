@@ -7,7 +7,7 @@
  *
  * Paths are resolved relative to the directory scons is invoked from, which is
  * sdk_probe/project.
- *   image stamp: fd.img 1acf6420752227632fe7e5c11c216918 (1474560 bytes), bios 08766edbc54c12b20cdd0490a32cdec1
+ *   image stamp: fd.img f8fce7313194ce10e28c20a1250aeab2 (1474560 bytes), bios 08766edbc54c12b20cdd0490a32cdec1
  */
 
     .section .rodata.sf8086_bios_image, "a"

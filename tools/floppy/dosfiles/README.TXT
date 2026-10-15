@@ -1,9 +1,9 @@
 sf8086: FreeDOS on the SF32LB525 (Huangshan Pi) board
 =====================================================
 
-What you are running
-  FreeDOS (kernel build 2040, FreeCOM 0.82) on top of the 8086tiny emulator,
-  which runs on the board's Cortex-M33 at 240 MHz.  Your terminal is the board
+DOS on a PC-XT class machine
+  A DOS (FreeDOS 1.0 or MS-DOS 6.22 both work) running on the 8086tiny emulator,
+  which runs on the board's Cortex-M33 at 240 MHz.  The terminal is the board
   UART1; the emulator maps it to the guest's keyboard and BIOS console.
 
 Disks

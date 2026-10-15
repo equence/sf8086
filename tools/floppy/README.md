@@ -18,6 +18,33 @@ sh tools/floppy/build_fdimg.sh      # fd-base.img + edits -> fd.img
 After changing the image, reflash the firmware: the new floppy is what the board
 serves to DOS (see the repository README for the guest console and the disks).
 
+## Running MS-DOS (or another DOS) instead of FreeDOS
+
+The emulator side needs no change for this: 8086tiny's BIOS already implements
+what MS-DOS asks for (INT 13h read/write/parameters/type, INT 12h memory size,
+INT 11h equipment, INT 1Ah clock, INT 1Ch tick, INT 16h keyboard, INT 10h video),
+and the upstream documentation lists MS-DOS 6.22 as tested.
+
+What changes is the image. `build_fdimg.sh` takes any bootable 1.44 MB FAT12
+floppy through `DOS_IMAGE`:
+
+```sh
+mkdir -p tools/floppy/local
+cp /path/to/msdos622.img tools/floppy/local/dos.img
+DOS_IMAGE=tools/floppy/local/dos.img sh tools/floppy/build_fdimg.sh
+```
+
+The script checks the geometry, the boot signature and the presence of a DOS
+system file before it touches anything, then copies the image and edits the copy.
+Pruning is skipped for supplied images, since their layout is unknown; add
+`PRUNE=1` if you do want the FreeDOS prune list applied. The C toolchain is added
+when there is room for it (`WITHOUT_TOOLS=1` skips it, and the script says so when
+the image is too full). Rebuild the firmware afterwards as usual.
+
+MS-DOS is proprietary. Keep such images under `tools/floppy/local/`, which is
+ignored by git, and do not commit them: they are the user's own copies, while
+everything else in this directory is redistributable.
+
 ## What is on the floppy
 
 The upstream image already contained a full FreeDOS tool set (EDIT, DEBUG, ZIP/

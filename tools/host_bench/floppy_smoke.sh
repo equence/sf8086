@@ -57,7 +57,7 @@ check() {
 echo "floppy-smoke checks:"
 check 'Turbo C  Version 2.01'
 check 'Turbo Link  Version 2.0'
-check 'Hello from FreeDOS on the SF32LB525.'
+check 'Hello from the SF32LB525.'
 check 'primes below 2000'
 check 'line 5 written by FILEIO.EXE'
 

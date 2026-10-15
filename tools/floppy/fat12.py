@@ -28,6 +28,9 @@ import struct
 import sys
 from datetime import datetime
 
+# Timestamps written into directory entries are fixed, so that rebuilding the
+# same image twice produces the same bytes.
+ENTRY_TIMESTAMP = datetime(2026, 1, 1, 0, 0, 0)
 CLUSTER_EOF = 0xFFF
 ATTR_READONLY = 0x01
 ATTR_HIDDEN = 0x02
@@ -218,7 +221,7 @@ class Fat12:
         raw[0:8] = stem.upper().ljust(8).encode("ascii")
         raw[8:11] = ext.upper().ljust(3).encode("ascii")
         raw[11] = ATTR_ARCHIVE
-        now = datetime.now()
+        now = ENTRY_TIMESTAMP
         struct.pack_into("<H", raw, 22, (now.hour << 11) | (now.minute << 5) | (now.second // 2))
         struct.pack_into("<H", raw, 24, ((now.year - 1980) << 9) | (now.month << 5) | now.day)
         struct.pack_into("<H", raw, 26, first_cluster)
@@ -255,7 +258,7 @@ class Fat12:
         raw[0:8] = stem.upper().ljust(8).encode("ascii")[:8]
         raw[8:11] = ext.upper().ljust(3).encode("ascii")[:3]
         raw[11] = ATTR_DIRECTORY
-        now = datetime.now()
+        now = ENTRY_TIMESTAMP
         struct.pack_into("<H", raw, 22, (now.hour << 11) | (now.minute << 5) | (now.second // 2))
         struct.pack_into("<H", raw, 24, ((now.year - 1980) << 9) | (now.month << 5) | now.day)
         struct.pack_into("<H", raw, 26, cluster)
@@ -438,7 +441,7 @@ class Fat12:
         raw = bytearray(self.data[source["slot"]:source["slot"] + 32])
         if self.entry_name(bytes(raw)) is None:
             raise SystemExit(f"{name}: source entry vanished")
-        now = datetime.now()
+        now = ENTRY_TIMESTAMP
         struct.pack_into("<H", raw, 22, (now.hour << 11) | (now.minute << 5) | (now.second // 2))
         struct.pack_into("<H", raw, 24, ((now.year - 1980) << 9) | (now.month << 5) | now.day)
 
@@ -454,7 +457,7 @@ class Fat12:
         raw[0:8] = (first_char + stem[1:]).upper().ljust(8).encode("ascii")[:8]
         raw[8:11] = ext.upper().ljust(3).encode("ascii")[:3]
         raw[11] = ATTR_ARCHIVE
-        now = datetime.now()
+        now = ENTRY_TIMESTAMP
         struct.pack_into("<H", raw, 22, (now.hour << 11) | (now.minute << 5) | (now.second // 2))
         struct.pack_into("<H", raw, 24, ((now.year - 1980) << 9) | (now.month << 5) | now.day)
         struct.pack_into("<H", raw, 26, item["first"])

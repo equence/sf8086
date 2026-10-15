@@ -9,5 +9,8 @@ sdk_probe/project/.sconsign.dblite
 __pycache__/
 *.pyc
 
+# Locally supplied DOS images (proprietary, must not be committed)
+tools/floppy/local/
+
 # Editor / OS noise
 .DS_Store
