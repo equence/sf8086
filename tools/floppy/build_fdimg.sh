@@ -42,46 +42,7 @@ if [ ! -f "$base" ]; then
   exit 1
 fi
 
-python3 - "$base" <<'PY'
-import re
-import struct
-import sys
-
-path = sys.argv[1]
-data = open(path, "rb").read()
-problems = []
-if len(data) != 1474560:
-    problems.append(f"size is {len(data)}, expected 1474560 (1.44 MB)")
-if data[510:512] != b"\x55\xAA":
-    problems.append("no 55 AA boot signature")
-
-print(f"base image: {path}")
-try:
-    bps, spc, resv, nfat, ndir, nsect, media = struct.unpack_from("<HBHBHHB", data, 11)
-    spf = struct.unpack_from("<H", data, 22)[0]
-except Exception as exc:                                    # noqa: BLE001
-    problems.append(f"unreadable BPB: {exc}")
-else:
-    print(f"  geometry : {bps} B/sector, {spc} sector/cluster, {nsect} sectors, "
-          f"media 0x{media:02X}")
-    print(f"  layout   : {nfat} FAT of {spf} sectors, {ndir} root entries, "
-          f"{resv} reserved")
-    if bps != 512 or spc != 1 or nsect != 2880:
-        problems.append(f"geometry is {bps} B sectors, {spc} per cluster, {nsect} total")
-
-# A floppy without a DOS system file boots nowhere.  Warn rather than refuse.
-root_dir = data[(resv + nfat * spf) * bps:(resv + nfat * spf) * bps + ndir * 32]
-names = b"".join(re.findall(rb"[A-Z0-9_ ]{11}", root_dir))
-if not any(sys in names for sys in (b"IO      SYS", b"MSDOS   SYS",
-                                    b"IBMDOS  COM", b"KERNEL  SYS")):
-    print("  warning  : no IO.SYS / MSDOS.SYS / KERNEL.SYS in the root directory")
-
-if problems:
-    for problem in problems:
-        print(f"  problem  : {problem}", file=sys.stderr)
-    print("not a 1.44 MB FAT12 boot floppy; refusing to build from it", file=sys.stderr)
-    sys.exit(1)
-PY
+python3 "$root/tools/floppy/check_image.py" "$base"
 
 cp "$base" "$image"
 echo

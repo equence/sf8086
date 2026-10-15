@@ -484,7 +484,8 @@ def main(argv):
 
     image_path, command = argv[1], argv[2]
     args = argv[3:]
-    writable = command in ("add", "del", "reclaim", "undelete", "put", "mkdir", "salvage")
+    writable = command in ("add", "del", "reclaim", "undelete", "put", "mkdir",
+                           "salvage", "import")
     fs = Fat12(image_path, writable=writable)
 
     if command == "ls":
@@ -612,6 +613,27 @@ def main(argv):
         cluster = fs.make_dir(parent, parts[-1])
         fs.save()
         print(f"created {dos_path} (cluster {cluster})")
+
+    elif command == "import":
+        # Copy a file out of another FAT12 image, e.g. taking the FreeDOS editor
+        # into an MS-DOS image.
+        source_image, source_path, dest_dir = args[0], args[1].replace("\\", "/"), args[2]
+        source = Fat12(source_image)
+        parts = source_path.split("/")
+        directory = "/".join(parts[:-1])
+        source_cluster = source.find_dir(directory) if directory else 0
+        entry = None
+        for row in source.list_dir(source_cluster):
+            if row[0].upper() == parts[-1].upper():
+                entry = row
+                break
+        if entry is None:
+            raise SystemExit(f"{source_path}: not found in {source_image}")
+        blob = source.read_file(entry[3], entry[2])
+        dir_cluster = fs.find_dir(dest_dir) if dest_dir else 0
+        used = fs.allocate(blob, dir_cluster, entry[0])
+        fs.save()
+        print(f"imported {entry[0]} ({human(len(blob))}, {used} clusters) from {source_image}")
 
     elif command == "del":
         if not args:

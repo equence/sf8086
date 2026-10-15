@@ -58,7 +58,8 @@ DOS 运行期间 UART1 由仿真器独占，shell 不读取该端口。`Ctrl-]` 
 
 对 A: 的写入保存在 RAM 中，重启后丢失。DOS 中的操作不会修改 flash 中的镜像。
 
-固件里的镜像默认是 FreeDOS。若改用 MS-DOS，需要用你自己的启动软盘重建镜像，做法见
+固件里的镜像默认是 FreeDOS。也可以改用 MS-DOS 6.22：用你自己的 MS-DOS 启动软盘执行
+`sh tools/floppy/build_msdos.sh` 生成镜像，之后照常重新编译固件。详见
 [tools/floppy/README.md](tools/floppy/README.md)。
 
 Alt 组合键：仿真的 BIOS 以 `Ctrl+A` 作为 Alt 前缀，固件转换终端发出的 `ESC`+键序列。
