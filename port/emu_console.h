@@ -1,4 +1,7 @@
 /*
+ * Copyright (C) 2026 equence <equence@qq.com>
+ * Part of sf8086, a port of 8086tiny to the SiFli SF32LB525 board.
+ *
  * Console boundary for 8086tiny.
  *
  * The emulator only needs byte-oriented terminal I/O.  The target implementation

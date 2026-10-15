@@ -1,4 +1,7 @@
 /*
+ * Copyright (C) 2026 equence <equence@qq.com>
+ * Part of sf8086, a port of 8086tiny to the SiFli SF32LB525 board.
+ *
  * Host harness for the RAM-disk backend.
  *
  * Loads the guest BIOS and floppy image into plain memory buffers, registers

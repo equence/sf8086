@@ -1,4 +1,6 @@
 #!/bin/sh
+# Copyright (C) 2026 equence <equence@qq.com>
+# Part of sf8086, a port of 8086tiny to the SiFli SF32LB525 board.
 # Host regression: the POSIX console backend behaves like a UART byte stream.
 # Expected evidence: FreeDOS kernel banner appears without relying on direct
 # write(1,...) inside the emulator core.

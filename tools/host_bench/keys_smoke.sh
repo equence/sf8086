@@ -1,4 +1,6 @@
 #!/bin/sh
+# Copyright (C) 2026 equence <equence@qq.com>
+# Part of sf8086, a port of 8086tiny to the SiFli SF32LB525 board.
 # Keyboard regression: what the guest receives for the key sequences a terminal
 # sends.  Runs KEYTEST.C (built with the floppy's own Turbo C) inside the host
 # emulator and pins down the behaviour:

@@ -1,4 +1,6 @@
 #!/bin/sh
+# Copyright (C) 2026 equence <equence@qq.com>
+# Part of sf8086, a port of 8086tiny to the SiFli SF32LB525 board.
 # End-to-end check of the DOS boot floppy: boot it in the host emulator, compile
 # the sample programs with the bundled Turbo C 2.01, run them, and look for the
 # expected output.  This exercises the same image the firmware embeds.

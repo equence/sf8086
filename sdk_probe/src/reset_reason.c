@@ -1,4 +1,7 @@
 /*
+ * Copyright (C) 2026 equence <equence@qq.com>
+ * Part of sf8086, a port of 8086tiny to the SiFli SF32LB525 board.
+ *
  * Report why the board last reset.
  *
  * The SF32LB52x PMU keeps the reset/wakeup source in PMUC_WSR, and the bits are

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Copyright (C) 2026 equence <equence@qq.com>
+# Part of sf8086, a port of 8086tiny to the SiFli SF32LB525 board.
 """Check that a file is a 1.44 MB FAT12 boot floppy we can build from.
 
 Used by the FreeDOS and MS-DOS image builders.  Prints what it found and exits

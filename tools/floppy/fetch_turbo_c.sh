@@ -1,4 +1,6 @@
 #!/bin/sh
+# Copyright (C) 2026 equence <equence@qq.com>
+# Part of sf8086, a port of 8086tiny to the SiFli SF32LB525 board.
 # Fetch the Turbo C 2.01 pieces used on the floppy and stage them in payload/.
 #
 # Turbo C 2.01 (Borland, 1989) is the practical C toolchain for an 8086-class

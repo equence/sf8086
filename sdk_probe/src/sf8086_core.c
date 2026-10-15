@@ -1,4 +1,7 @@
 /*
+ * Copyright (C) 2026 equence <equence@qq.com>
+ * Part of sf8086, a port of 8086tiny to the SiFli SF32LB525 board.
+ *
  * Build unit for the upstream 8086tiny core on the SF32LB525.
  *
  * The upstream tree is included verbatim; everything the target needs is done

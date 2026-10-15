@@ -106,6 +106,10 @@ Alt 组合键：仿真的 BIOS 以 `Ctrl+A` 作为 Alt 前缀，固件转换终�
 - **SiFli SDK** 与 **RT-Thread**（Apache-2.0）：RTOS、驱动与板级支持，未随仓库分发。
 - **Arm GNU Toolchain**（GPL-3.0 + Arm exception）：构建工具链，未随仓库分发。
 
+移植层本身（`port/`、`sdk_probe/`、`tools/`）的版权归本项目作者所有（2026，
+equence (equence@qq.com)）；对 `third_party/8086tiny/8086tiny.c` 的两处修改，
+在上游文件头部也标注了同样的声明。
+
 Turbo C 2.01 收录在此只是为了方便，并不代表其条款允许再分发：Borland 发布它时允许
 免费使用，但没有明确授予再分发权。若权利人认为这里的收录构成侵权，请在本仓库提交
 issue，我会将其移除。

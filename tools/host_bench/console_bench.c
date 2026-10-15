@@ -1,4 +1,7 @@
 /*
+ * Copyright (C) 2026 equence <equence@qq.com>
+ * Part of sf8086, a port of 8086tiny to the SiFli SF32LB525 board.
+ *
  * Host-side benchmark console backend.
  *
  * Behaves like port/emu_console_posix.c but stops the emulator as soon as the

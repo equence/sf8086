@@ -1,4 +1,6 @@
 #!/bin/sh
+# Copyright (C) 2026 equence <equence@qq.com>
+# Part of sf8086, a port of 8086tiny to the SiFli SF32LB525 board.
 # Build a board floppy from an MS-DOS 6.22 boot disk.
 #
 # The stock 6.22 rescue disk boots into a CD-ROM driver menu and loads HIMEM,

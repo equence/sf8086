@@ -121,6 +121,11 @@ firmware prints the measured value when the guest first reaches its prompt:
 - **Arm GNU Toolchain** (GPL-3.0 with the Arm exception): build toolchain. Not
   vendored.
 
+The port itself (`port/`, `sdk_probe/`, `tools/`) is Copyright (C) 2026
+equence (equence@qq.com). The two changes to
+`third_party/8086tiny/8086tiny.c` carry the same notice beside the upstream
+header.
+
 Turbo C 2.01 is included for convenience, not because its terms permit
 redistribution: Borland released it for free use, without explicitly granting the
 right to pass it on. If you hold the rights to it and object to its presence

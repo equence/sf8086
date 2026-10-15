@@ -1,4 +1,6 @@
 #!/bin/sh
+# Copyright (C) 2026 equence <equence@qq.com>
+# Part of sf8086, a port of 8086tiny to the SiFli SF32LB525 board.
 # Build a board floppy from a local MS-DOS 6.22 image and boot it in the host
 # emulator, then compile and run the samples in MS-DOS.
 #

@@ -1,4 +1,6 @@
 #!/bin/sh
+# Copyright (C) 2026 equence <equence@qq.com>
+# Part of sf8086, a port of 8086tiny to the SiFli SF32LB525 board.
 # Host regression for the RAM-disk backend used on the target.
 # The emulator core is compiled with -Dopen=emu_disk_open and friends (the same
 # redirection sdk_probe/src/sf8086_core.c applies) and must still boot FreeDOS.

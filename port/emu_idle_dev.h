@@ -1,4 +1,7 @@
 /*
+ * Copyright (C) 2026 equence <equence@qq.com>
+ * Part of sf8086, a port of 8086tiny to the SiFli SF32LB525 board.
+ *
  * "emu_idle": a character device with no input of its own.
  *
  * While the emulator owns UART1, the RT-Thread shell is re-pointed at this

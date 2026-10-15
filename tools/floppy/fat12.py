@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Copyright (C) 2026 equence <equence@qq.com>
+# Part of sf8086, a port of 8086tiny to the SiFli SF32LB525 board.
 """FAT12 image editor for the 8086tiny boot floppy.
 
 The boot image is a 1.44 MB FAT12 volume that FreeDOS boots from, so it has to be

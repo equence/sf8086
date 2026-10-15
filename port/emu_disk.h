@@ -1,4 +1,7 @@
 /*
+ * Copyright (C) 2026 equence <equence@qq.com>
+ * Part of sf8086, a port of 8086tiny to the SiFli SF32LB525 board.
+ *
  * RAM-disk backend for the 8086tiny port.
  *
  * The emulator only needs a tiny POSIX-like file interface for its BIOS and

@@ -1,4 +1,6 @@
 #!/bin/sh
+# Copyright (C) 2026 equence <equence@qq.com>
+# Part of sf8086, a port of 8086tiny to the SiFli SF32LB525 board.
 # Build the DOS boot floppy that ships inside the firmware.
 #
 # By default it starts from the vendored FreeDOS image and applies the recipe:

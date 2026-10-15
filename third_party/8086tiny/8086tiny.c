@@ -4,6 +4,16 @@
 // Revision 1.25
 //
 // This work is licensed under the MIT License. See included LICENSE.TXT.
+//
+// ---------------------------------------------------------------------------
+// Modifications for the sf8086 port to the SiFli SF32LB525 board:
+// Copyright (C) 2026 equence <equence@qq.com>
+//
+// Two change sites, both guarded by macros and marked at their definitions:
+//   SF8086_SERIAL_PORT - terminal I/O is routed to port/emu_console_*.c
+//   SF8086_PSRAM_MEM   - guest RAM is a pointer supplied by the port layer
+// Everything else is upstream code, and the MIT licence above still applies.
+// ---------------------------------------------------------------------------
 
 #include <time.h>
 #include <sys/timeb.h>
