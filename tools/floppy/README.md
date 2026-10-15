@@ -29,7 +29,10 @@ UNZIP, XCOPY, MOVE, MEM, TREE, FDISK, FORMAT, DOSLFN, ...).  On top of that:
 | `\TC` | Turbo C 2.01: `TCC.EXE` (compiler), `TLINK.EXE` (linker) |
 | `\TC\INCLUDE` | the 26 Turbo C headers |
 | `\TC\LIB` | small model runtime: `C0S.OBJ`, `CS.LIB`, `MATHS.LIB`, `EMU.LIB` |
-| `\TC\SAMPLES` | `HELLO.C`, `SIEVE.C`, `FILEIO.C` |
+| `\TC\SAMPLES` | `HELLO.C`, `SIEVE.C`, `FILEIO.C`, `KEYTEST.C` |
+
+`KEYTEST.C` prints the scancode/ASCII pair (INT 16h) and the BIOS shift flags for
+every key press - handy when a key combination "does not work" in a DOS program.
 
 Usage inside DOS:
 

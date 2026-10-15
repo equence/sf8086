@@ -28,6 +28,7 @@
  */
 #include "emu_console.h"
 #include "emu_idle_dev.h"
+#include "emu_meta.h"
 
 #include <fcntl.h>
 #include <rtdevice.h>
@@ -44,6 +45,8 @@ extern unsigned int inst_counter; /* defined in 8086tiny.c */
 
 static rt_device_t console_uart;
 static int console_opened;
+static unsigned char pending_byte;
+static int has_pending_byte;
 
 static struct rt_semaphore emu_pause_sem;
 static int emu_pause_sem_ready;
@@ -161,11 +164,45 @@ void emu_console_reset_prompt_report(void)
 int emu_console_rx(unsigned char *out)
 {
     unsigned char ch;
+    unsigned char next;
+    int waited;
 
     if (console_uart == RT_NULL)
         return 0;
+
+    if (has_pending_byte)
+    {
+        *out = pending_byte;
+        has_pending_byte = 0;
+        return 1;
+    }
+
     if (rt_device_read(console_uart, -1, &ch, 1) != 1)
         return 0;
+
+    if (ch == EMU_META_ESC)
+    {
+        /*
+         * A terminal sends Alt+key as ESC followed by the key.  Wait a moment
+         * for that key: if it is printable, report it as the BIOS's Alt prefix
+         * (Ctrl+A) followed by the key, otherwise pass the ESC through so
+         * escape sequences and the plain ESC key keep working.
+         */
+        for (waited = 0; waited < EMU_META_TIMEOUT_MS; waited++)
+        {
+            if (rt_device_read(console_uart, -1, &next, 1) == 1)
+            {
+                pending_byte = next;
+                has_pending_byte = 1;
+                *out = emu_meta_is_alt_pair(next) ? EMU_META_ALT_PREFIX : EMU_META_ESC;
+                return 1;
+            }
+            rt_thread_mdelay(1);
+        }
+
+        *out = EMU_META_ESC; /* lone ESC */
+        return 1;
+    }
 
     if (ch == EMU_CONSOLE_ESCAPE)
     {
