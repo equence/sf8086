@@ -48,6 +48,17 @@ static int console_opened;
 static unsigned char pending_byte;
 static int has_pending_byte;
 
+/*
+ * The emulator never blocks, and RT-Thread only preempts a running thread for
+ * one with a numerically lower priority.  Anything at a higher number - the
+ * idle thread, a watchdog feeder, USB/PM work - would therefore never run while
+ * DOS is running.  This poll runs once per 20000 guest instructions, so yielding
+ * here costs well under 1% of the guest speed and keeps the rest of the system
+ * alive.
+ */
+#define EMU_CONSOLE_POLLS_PER_YIELD 10
+static unsigned int poll_count;
+
 static struct rt_semaphore emu_pause_sem;
 static int emu_pause_sem_ready;
 static volatile int emu_paused;          /* emulator parked, shell owns UART1 */
@@ -169,6 +180,9 @@ int emu_console_rx(unsigned char *out)
 
     if (console_uart == RT_NULL)
         return 0;
+
+    if ((++poll_count % EMU_CONSOLE_POLLS_PER_YIELD) == 0)
+        rt_thread_mdelay(1);
 
     if (has_pending_byte)
     {
