@@ -5,5 +5,9 @@ sdk_probe/project/.sconsign.dblite
 # Objects that SCons places next to sources living outside the build directory
 *.o
 
+# Python bytecode from the helper scripts
+__pycache__/
+*.pyc
+
 # Editor / OS noise
 .DS_Store
