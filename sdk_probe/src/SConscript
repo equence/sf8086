@@ -1,0 +1,39 @@
+import os
+from building import *
+
+cwd = GetCurrentDir()
+port_dir = os.path.join(cwd, '../../port')
+
+# Bring-up probe, emulator glue, and the port layer files that the target needs
+# (sf8086_core.c is built separately below because it needs its own flags).
+app_src = [str(f) for f in Glob('*.c') if not str(f).endswith('sf8086_core.c')]
+app_src += [
+    os.path.join(port_dir, 'emu_console_rtthread.c'),
+    os.path.join(port_dir, 'emu_libc_shim.c'),
+]
+
+group = DefineGroup('Applications', app_src, depend=[''], CPPPATH=[port_dir])
+
+# Flash-resident guest disk images (.incbin in disk_image.S).
+group = group + DefineGroup('8086tiny-images', Glob('*.S'), depend=[''],
+                            CPPPATH=[port_dir])
+
+# The upstream emulator core, compiled straight for the Cortex-M33.
+# -fsigned-char is required by 8086tiny; it is applied per group (LOCAL_CCFLAGS)
+# because the SDK default for everything else is -funsigned-char, which makes
+# the emulator produce no guest output at all (measured).
+core_group = DefineGroup('8086tiny-core',
+                         [os.path.join(cwd, 'sf8086_core.c')],
+                         depend=[''],
+                         CPPPATH=[port_dir],
+                         LOCAL_CCFLAGS='-fsigned-char')
+
+# RAM-disk backend used by the emulator core through macro redirection.
+disk_group = DefineGroup('8086tiny-disk',
+                         [os.path.join(port_dir, 'emu_disk.c')],
+                         depend=[''],
+                         CPPPATH=[port_dir])
+
+group = group + core_group + disk_group
+
+Return('group')

@@ -1,0 +1,9 @@
+SiFli HCPU build probe (host machine, no hardware required):
+
+    cd /Users/wangmian/Fixes/SiFli-SDK
+    source env.sh
+    scons --board=sf32lb52-lchspi-ulp -C <path-to-sdk_probe-project>
+
+Board defaults already wire UART1 to PA18/PA19 with pull-ups; the probe only
+needs BSP_USING_PSRAM1 plus DFS to validate the memory/IO path before adding
+the emulator.
