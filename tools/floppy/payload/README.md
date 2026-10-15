@@ -15,11 +15,12 @@ TCC.EXE and TLINK.EXE are 16-bit real-mode DOS programs, so they run under
 8086tiny, which does not implement 386 protected mode.  Toolchains that need a
 386 or a DPMI host (OpenWatcom, DJGPP, SmallerC's prebuilt DOS binaries) cannot.
 
-Borland released Turbo C 2.01 as free "antique software" in 2006; the release
+Borland released Turbo C 2.01 as free "antique software" in 2006.  The release
 permits free download and use, but does not explicitly grant redistribution
-rights.  These files are staged for a private build of this board image.  If
-this repository is going to be published, either drop `tc201/` (and skip the
-compiler in `build_fdimg.sh`) or confirm the redistribution terms first.
+rights; the files are kept here so the floppy image can be rebuilt offline.  If
+you hold the rights to Turbo C and object to their presence, open an issue in
+this repository and they will be removed.  Deleting `tc201/` and re-running
+`build_fdimg.sh` produces an image without a compiler.
 
 Deliberately *not* staged: TC.EXE (the 290 KB IDE, which needs more memory than
 an 8086tiny guest has free), TCHELP.TCH, the graphics/BGI libraries and the
