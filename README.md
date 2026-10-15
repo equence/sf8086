@@ -72,6 +72,18 @@ Alt key combinations: the emulated BIOS uses `Ctrl+A` as an Alt prefix, and the
 firmware converts the `ESC`+key sequence produced by terminals. `KEYTEST` prints
 the scan code and ASCII value received for each key press.
 
+## Screenshots
+
+Captured from the board's UART console.
+
+![The DOS editor running on the board](docs/images/EDIT_in_FreeDOS.png)
+
+*The DOS editor (EDIT).*
+
+![Turbo C compiling a program in DOS](docs/images/TurboC_in_FreeDOS.png)
+
+*Turbo C 2.01 compiling a program.*
+
 ## Performance
 
 Booting to the DOS prompt executes approximately 2.5×10⁸ guest instructions. That

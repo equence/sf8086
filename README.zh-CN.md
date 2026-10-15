@@ -65,6 +65,18 @@ DOS 运行期间 UART1 由仿真器独占，shell 不读取该端口。`Ctrl-]` 
 Alt 组合键：仿真的 BIOS 以 `Ctrl+A` 作为 Alt 前缀，固件转换终端发出的 `ESC`+键序列。
 `KEYTEST` 打印每次按键所接收到的扫描码与 ASCII 值。
 
+## 截图
+
+从板子的 UART 控制台截取。
+
+![DOS 编辑器在板上运行](docs/images/EDIT_in_FreeDOS.png)
+
+*DOS 编辑器 EDIT。*
+
+![Turbo C 在 DOS 里编译](docs/images/TurboC_in_FreeDOS.png)
+
+*Turbo C 2.01 编译程序。*
+
 ## 性能
 
 启动至 DOS 提示符约执行 2.5×10⁸ 条访客指令。在台式机上约需 2 秒；板上 Cortex-M33
