@@ -15,7 +15,10 @@ app_src += [
 
 group = DefineGroup('Applications', app_src, depend=[''], CPPPATH=[port_dir])
 
-# Flash-resident guest disk images (.incbin in disk_image.S).
+# Flash-resident guest disk images (.incbin in disk_image.S).  SCons cannot see
+# through .incbin, so tools/floppy/build_fdimg.sh stamps the image checksums into
+# disk_image.S: that keeps a rebuilt floppy from being silently left out of the
+# firmware (a real hazard - the build looks "up to date" otherwise).
 group = group + DefineGroup('8086tiny-images', Glob('*.S'), depend=[''],
                             CPPPATH=[port_dir])
 
